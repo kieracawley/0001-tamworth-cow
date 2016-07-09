@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script src="https://code.jquery.com/jquery.min.js"></script>
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.0.0.js"></script>
+	<style>
+		body{
+			margin-left:50px;
+			margin-top:50px;
+		}
+		textarea{
+			width:100px;
+			height:210px;
+		}
+	</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>The Tamworth Two</title>
+</head>
+<body>
+  <textarea id="gridInput"></textarea><br><br>
+  <button class="btn btn-default" onclick="buttonClicked()">Get Number Of Minutes</button><br><br>
+  <div id="minutesDisplay"></div>
+</body>
+<footer>
+	<script>
+		var grid = {};
+
+		var translation = {
+		  "." : "blank",
+		  "*" : "obsticle",
+		  "C" : "Cows",
+		  "F" : "Farmer"
+		};
+
+		var myTimer;
+
+		var directionTranslation = {
+		  0: [0,-1],
+		  1: [1,0],
+		  2: [0,1],
+		  3: [-1,0]
+		};
+
+		var farmerPosition = [0,0];
+		var cowsPosition = [0,0];
+
+		var numberOfTurnsCows = 0;
+		var numberOfTurnsFarmer = 0;
+
+		var minutesPassed = 0;
+
+		function buttonClicked(){
+		  farmerPosition = [0,0];
+		  cowsPosition = [0,0];
+
+		  numberOfTurnsCows = 0;
+		  numberOfTurnsFarmer = 0;
+
+		  minutesPassed = 0;
+
+			myTimer = 0;
+
+		  var string = $("#gridInput").val().replace(/(\r\n|\n|\r)/gm,"");
+		  console.log(string);
+		  findNumberOfMinutes(string);
+		}
+
+		function getDataFromString(dataString){
+
+		  var splitDataString = dataString.split("");
+
+		  for(i = 0; i < splitDataString.length; i++){
+
+		    var xPosition = (i % 10);
+		    var yPosition = (i - i % 10)/10;
+		    var key = [xPosition, yPosition];
+
+		    grid[key] = translation[splitDataString[i]];
+
+		    if(grid[key] == "Cows"){
+		      cowsPosition = key;
+		    }
+		    else if (grid[key] == "Farmer"){
+		      farmerPosition = key;
+		    }
+
+		  }
+		}
+
+		function moveCowsAndFarmer(){
+		  minutesPassed++;
+		  moveFarmer();
+		  moveCows();
+
+		  if(farmerPosition[0] == cowsPosition[0]){
+		    if(farmerPosition[1] == cowsPosition[1]){
+		      window.clearInterval(myTimer);
+		      $("#minutesDisplay").html(minutesPassed + " minutes");
+		    }
+		  }
+		}
+
+		function moveCows(){
+		  var cowsChangeInX = directionTranslation[numberOfTurnsCows % 4][0];
+		  var cowsChangeInY = directionTranslation[numberOfTurnsCows % 4][1];
+
+		  var newCowsPosition = [cowsPosition[0] + cowsChangeInX, cowsPosition[1] + cowsChangeInY];
+
+		  var validMove = true;
+
+		  if(grid[newCowsPosition] != "blank" && grid[newCowsPosition] != "Farmer"){
+		    validMove = false;
+		  }
+
+		  if(validMove){
+		    grid[cowsPosition] = "blank";
+		    grid[newCowsPosition] = "Cow";
+		    cowsPosition = newCowsPosition;
+		  }
+		  else{
+		    numberOfTurnsCows++;
+		  }
+		}
+
+		function moveFarmer(){
+		  var farmerChangeInX = directionTranslation[numberOfTurnsFarmer % 4][0];
+		  var farmerChangeInY = directionTranslation[numberOfTurnsFarmer % 4][1];
+
+		  var newFarmerPosition = [farmerPosition[0] + farmerChangeInX, farmerPosition[1] + farmerChangeInY];
+
+		  var validMove = true;
+
+		  if(grid[newFarmerPosition] != "blank" && grid[newFarmerPosition] != "Cows"){
+		    validMove = false;
+		  }
+
+		  if(validMove){
+		    grid[farmerPosition] = "blank";
+		    grid[newFarmerPosition] = "Farmer";
+		    farmerPosition = newFarmerPosition;
+		  }
+		  else{
+		    numberOfTurnsFarmer++;
+		  }
+		}
+
+		function findNumberOfMinutes(inputGrid){
+		  getDataFromString(inputGrid);
+		  myTimer = setInterval(moveCowsAndFarmer, 1);
+		}
+
+	</script>
+</footer>
+</html>
